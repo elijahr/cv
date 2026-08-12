@@ -1,203 +1,826 @@
-<!doctype html>
-<html lang="en-gb">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Elijah Shaw-Rutschman</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="./override.css">
-    <style>
-      /* Variables (light) */
-:root {
-  --color-text: #40484f; --color-text-secondary: #606d76; --color-text-muted: #757575;
-  --color-heading: #202931; --color-date: #202931; --color-accent: #ff6d1f;
-  --color-link: #0095ff; --color-link-hover: #0c65a5;
-  --color-background: var(--color-section-title-bg); --color-background-alt: #f1f8ff;
-  --color-border: #ccc; --color-border-light: #ddd;
-  --color-keyword-text: #2c5777; --color-keyword-bg: #dfeaf1; --color-keyword-border: #dfeaf1;
-  --color-reference-border: #ff6d1f;
-  --color-bar-beginner: #eb5f51; --color-bar-intermediate: #ffdf1f;
-  --color-bar-advanced: #5cb85c; --color-bar-master: #59c596;
-  --color-section-title-bg: #fff;
-  --font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-
-  /* Type scale — 14px base, ~1.14 ratio (subtle, professional) */
-  --fs-name: 2.143rem;       /* 30px */
-  --fs-label: 1.429rem;      /* 20px */
-  --fs-title: 1.143rem;      /* 16px */
-  --fs-card: 1.071rem;       /* 15px */
-  --fs-body: 1rem;           /* 14px */
-  --fs-meta: 0.929rem;       /* 13px (date, location, keywords) */
-  --fs-section: 0.857rem;    /* 12px caps with tracking */
-  --fs-fine: 0.786rem;       /* 11px */
-
-  /* Line heights — multiples of 4 against base */
-  --lh-tight: 1.15;
-  --lh-snug: 1.3;
-  --lh-base: 1.5;
-
-  /* Spacing — 8pt grid */
-  --sp-1: 0.286rem;  /*  4px */
-  --sp-2: 0.571rem;  /*  8px */
-  --sp-3: 0.857rem;  /* 12px */
-  --sp-4: 1.143rem;  /* 16px */
-  --sp-5: 1.714rem;  /* 24px */
-  --sp-6: 2.286rem;  /* 32px */
-}
-
-/* Variables (dark) */
-@media (prefers-color-scheme: dark) {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elijah Shaw-Rutschman - Resume</title>
+<style>
+  /* Themeable tokens (#1837): overridable via config/profile.yml `style:`, which
+     the PDF pipeline injects as a later :root block. Defaults below reproduce the
+     original hardcoded values, so a profile without a `style:` block is unchanged. */
   :root {
-    --color-text: #d4d4d8; --color-text-secondary: #a1a1aa; --color-text-muted: #9ca3af;
-    --color-heading: #e4e4e7; --color-date: #ffffff; --color-accent: #fb923c;
-    --color-link: #60a5fa; --color-link-hover: #93c5fd;
-    --color-background: #18181b; --color-background-alt: #27272a;
-    --color-border: #3f3f46; --color-border-light: #3f3f46;
-    --color-keyword-text: #93c5fd; --color-keyword-bg: #1e3a5f; --color-keyword-border: #1e3a5f;
-    --color-reference-border: #fb923c;
-    --color-bar-beginner: #ef4444; --color-bar-intermediate: #eab308;
-    --color-bar-advanced: #22c55e; --color-bar-master: #34d399;
-    --color-section-title-bg: #18181b;
-    --font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    --accent-color: hsl(18 88% 44%);
+    --accent-deep: hsl(18 72% 33%);
+    --accent-tint: hsl(18 62% 96%);
+    --accent-tint-border: hsl(18 52% 87%);
+    --font-family: "Liberation Sans", 'Helvetica Neue', Arial, 'DejaVu Sans', sans-serif;
+    --font-size: 10.6px;
+    /* Matches generate-pdf.mjs's PDF_PAGE_MARGIN — the actual PDF page margin
+       comes from the later @page rule injectPrintPageCss appends (which reads
+       this same variable), so this default must match it exactly. */
+    --page-margin: 0.5in;
   }
-}
+  @page { margin: var(--page-margin); }
 
-/* Minimal reset */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-img { max-width: 100%; display: block; }
-a { color: inherit; text-decoration: none; }
-ul, ol { list-style: none; }
+  /* ATS-safe typography (#font-extraction fix):
+     The bundled variable woff2 fonts (Space Grotesk / DM Sans) render with
+     glyph advances that make PDF text extractors inject spurious spaces inside
+     words (e.g. "SUM M ARY", "Germ any") — which corrupts ATS keyword parsing.
+     This template's job is clean machine-readable parsing, so we use a standard
+     static system sans stack instead. Verified clean via pypdf text extraction.
+     The lang="ja" rules reuse this Latin base stack (with a CJK fallback added);
+     the lang="ar" rules below intentionally define their own Arabic stack. */
 
-/* Base typography */
-body, html { font-family: var(--font-family); font-size: 14px; color: var(--color-text); background-color: var(--color-background); font-weight: 400; line-height: var(--lh-base); text-align: left; }
-p { display: block; }
-a { color: var(--color-link); text-decoration: none; }
-a:hover { color: var(--color-link-hover); text-decoration: underline; }
-li { list-style-type: square; list-style-position: outside; margin-left: 1.3em; }
-h1 { font-size: var(--fs-name); line-height: var(--lh-tight); }
-h2 { font-size: var(--fs-label); line-height: var(--lh-snug); }
-h3 { font-size: var(--fs-card); line-height: var(--lh-snug); }
-em { color: var(--color-text-muted); }
-strong { font-weight: 700; }
-
-/* Accessibility */
-.skip-to-content { position: absolute; left: -9999px; top: 0; z-index: 999; padding: 0.5em 1em; background: var(--color-accent); color: #fff; font-weight: 600; text-decoration: none; }
-.skip-to-content:focus { left: 0; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 2px; }
-
-/* Print */
-@media print {
-  @page { margin: 1.4cm 1.4cm; }
-  body { line-height: var(--lh-snug); }
-  ul { margin-top: var(--sp-2); }
-  ul, li { padding: 0; }
-}
-
-@media screen and (min-width: 1025px) { li { margin-left: 1.5em; } }
-
-/* Timeline item dates — global so rules apply across scoped child components (DateRange, singleDate) */
-.timeline-item header .date { display: block; font-size: var(--fs-meta); padding: 0; color: var(--color-text-secondary); font-weight: 500; line-height: var(--lh-snug); letter-spacing: 0.02em; }
-@media screen and (max-width: 601px) { .timeline-item header .date { float: none; margin-top: var(--sp-1); } }
-@media screen and (min-width: 602px) { .timeline-item header .date { float: right; padding-top: 0.2em; } }
-@media print { .timeline-item header .date { float: right; padding-top: 0.2em; } }
-
-    </style>
-    <style id="svelte-rssu9l">.resume.svelte-rssu9l {padding:1.5rem;}
-
-  @media print {.resume.svelte-rssu9l {margin:0.1em;padding:0.1em;-ms-word-wrap:break-word;word-wrap:break-word;line-height:1.25;}
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Disable fi/fl/ffi ligatures. Headless Chromium substitutes these letter
+       pairs with the Unicode glyphs U+FB01/FB02/FB03 at PDF layout time, and PDF
+       text extractors (what ATS systems read) decode them back to those
+       codepoints, so "verification" becomes "veriﬁcation" and a literal keyword
+       search misses it. Setting this on every element covers headings and
+       competency tags too. Required ligatures (rlig) stay on, so Arabic shaping
+       is unaffected. */
+    font-variant-ligatures: none;
+    font-kerning: none;
+    text-rendering: geometricPrecision;
+    font-feature-settings: "liga" 0, "clig" 0, "dlig" 0;
   }
 
-  @media screen and (max-width: 601px) {.resume.svelte-rssu9l {width:100%;padding:1rem;box-sizing:border-box;}
+  html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  @media screen and (min-width: 602px) {.resume.svelte-rssu9l {width:80%;margin:0 auto;}
+  body {
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    line-height: 1.42;
+    color: #1a1a2e;
+    background: #ffffff;
+    padding: 0;
+    margin: 0;
+    /* Disable ligatures here as well; see the * rule above. */
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0, "clig" 0, "dlig" 0;
   }
 
-  @media screen and (min-width: 1025px) {.resume.svelte-rssu9l {width:820px;margin:2rem auto;}
-  }</style><style id="svelte-10f9ycp">.header.svelte-10f9ycp {margin-bottom:var(--sp-5);}.name.svelte-10f9ycp {font-size:var(--fs-name);font-weight:200;line-height:var(--lh-tight);letter-spacing:-0.015em;color:var(--color-heading);}.label.svelte-10f9ycp {color:var(--color-heading);font-size:var(--fs-label);font-weight:300;line-height:var(--lh-snug);margin-top:var(--sp-1);margin-bottom:var(--sp-3);}.location.svelte-10f9ycp {color:var(--color-text-secondary);margin-bottom:var(--sp-2);display:block;}.image.svelte-10f9ycp {width:11em;float:right;border-radius:4px;}.profiles.svelte-10f9ycp {display:flex;flex-flow:row wrap;justify-content:flex-start;margin-top:var(--sp-1);gap:var(--sp-1) 0;}.main-summary.svelte-10f9ycp {background:var(--color-background-alt);padding:var(--sp-4);line-height:var(--lh-base);}
-
-  /* p margin reset handled by summary wrapper */
-
-  @media print {.header.svelte-10f9ycp {margin-bottom:var(--sp-4);}.profiles.svelte-10f9ycp a:not(.hide-href-print)::after {content:" · " attr(href);font-size:var(--fs-fine);color:var(--color-text-muted);font-weight:400;margin-left:0.2em;}.profiles.svelte-10f9ycp .item {padding:0;}.main-summary.svelte-10f9ycp {padding:0;background:transparent;}
+  .page {
+    width: 100%;
+    max-width: 8.5in;
+    margin: 0 auto;
+    padding: 2px 0;
   }
 
-  @media screen and (max-width: 601px) {.header.svelte-10f9ycp .profiles:where(.svelte-10f9ycp), .header.svelte-10f9ycp .contact {flex-wrap:wrap;}.name.svelte-10f9ycp {font-size:1.857rem;}.label.svelte-10f9ycp {font-size:1.286rem;}.image.svelte-10f9ycp {float:none;display:block;margin:0 auto 1rem;width:8em;}
-  }</style><style id="svelte-121pvxs">.contact.svelte-121pvxs {display:flex;flex-flow:row wrap;justify-content:flex-start;margin-top:var(--sp-2);gap:0 var(--sp-4);}.contact-item.svelte-121pvxs {line-height:var(--lh-snug);}.icon.svelte-121pvxs {margin-right:0.4em;color:var(--color-text-secondary);}</style><style id="svelte-a76edc">.item.svelte-a76edc {padding:0;margin-right:var(--sp-4);line-height:var(--lh-snug);}.social.svelte-a76edc {font-size:1.1em;margin-right:0.4em;color:var(--brand-light);}
-
-  @media print {.social.svelte-a76edc {color:#828386;}.fa-stack-overflow::after {content:"";}
+  /* === HEADER === */
+  .header {
+    margin-bottom: 10px;
   }
 
-  @media (prefers-color-scheme: dark) {.social.svelte-a76edc {color:var(--brand-dark);}
-  }</style><style id="svelte-1lncexq">.section.svelte-1lncexq {margin-bottom:var(--sp-5);}header.svelte-1lncexq {position:relative;margin-bottom:var(--sp-3);}header.svelte-1lncexq::after {position:absolute;left:0;top:50%;height:1px;background:var(--color-border);content:"";width:100%;z-index:0;display:block;}.item-count.svelte-1lncexq {margin-left:0.5em;font-weight:500;opacity:0.65;}.section-title.svelte-1lncexq {position:relative;z-index:1;display:inline-block;background:var(--color-section-title-bg);padding-right:0.85em;color:var(--color-accent);text-transform:uppercase;font-weight:700;border:none;font-size:var(--fs-section);line-height:var(--lh-tight);letter-spacing:0.12em;}
-
-  @media print {.section.svelte-1lncexq {margin-bottom:var(--sp-4);padding:0;}header.svelte-1lncexq {margin-bottom:var(--sp-2);}header.svelte-1lncexq::after {background:#d8d8d8;height:0.5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;}.location {padding-bottom:var(--sp-1);}.section.svelte-1lncexq > section > section {margin:var(--sp-3) 0;}.section.svelte-1lncexq > section > section:last-of-type {margin-bottom:0;}.item-count.svelte-1lncexq {display:none;}
-  }</style><style id="svelte-18p2gu6">.skills-grid.svelte-18p2gu6 {display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));column-gap:var(--sp-5);row-gap:var(--sp-3);}.skill-item.svelte-18p2gu6 {padding:0;border-bottom:none;}.name.svelte-18p2gu6 {font-weight:700;font-size:var(--fs-card);line-height:var(--lh-snug);color:var(--color-heading);margin-bottom:var(--sp-1);}
-
-  @media print {.skills-grid.svelte-18p2gu6 {column-gap:var(--sp-4);row-gap:var(--sp-3);}.skills-grid.svelte-18p2gu6 .skill-item:where(.svelte-18p2gu6) {display:flex;flex-direction:column;margin:0;padding:0;}
+  .header h1 {
+    font-family: var(--font-family);
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a2e;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+    line-height: 1.1;
   }
 
-  @media screen and (max-width: 479px) {.skills-grid.svelte-18p2gu6 {grid-template-columns:1fr;}
+  
+  .headline {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #4a5568;
+    letter-spacing: 0.01em;
+    margin-bottom: 8px;
+    line-height: 1.35;
+  }
+.header-gradient {
+    height: 2px;
+    background: var(--accent-color);
+    border-radius: 1px;
+    margin-bottom: 10px;
   }
 
-  @media screen and (min-width: 480px) and (max-width: 601px) {.skills-grid.svelte-18p2gu6 {grid-template-columns:repeat(2, minmax(0, 1fr));}
-  }</style><style id="svelte-1615qzb">ul.svelte-1615qzb {margin:var(--sp-2) 0 0 0;}li.svelte-1615qzb {display:inline-block;margin:2px 4px 2px 0;padding:2px 6px;font-size:var(--fs-fine);line-height:1.5;color:var(--color-keyword-text);background-color:var(--color-keyword-bg);border:0 solid var(--color-keyword-border);border-radius:3px;white-space:nowrap;}li.svelte-1615qzb:hover {background:var(--color-keyword-bg);}
-
-  @media print {ul.svelte-1615qzb {margin:var(--sp-2) 0 0 0;}li.svelte-1615qzb {margin:0;padding:0;font-size:var(--fs-meta);background:transparent;line-height:var(--lh-snug);}li.svelte-1615qzb::after {padding:0 0.4em;content:"·";color:var(--color-text-muted);}li.svelte-1615qzb:last-of-type::after {content:"";}.skills-grid li.svelte-1615qzb::after {padding:0 0.35em;content:"·";color:var(--color-text-muted);}.skills-grid li.svelte-1615qzb:last-of-type::after {content:"";}ul.svelte-1615qzb::before {font-size:var(--fs-body);font-weight:600;}ul.keywords.svelte-1615qzb::before {content:"Skills: ";font-size:var(--fs-body);}.skills-grid ul.svelte-1615qzb::before {content:none;}ul.courses.svelte-1615qzb::before {content:"Major courses: ";font-size:var(--fs-body);}.skills-grid .keywords.svelte-1615qzb {font-size:var(--fs-meta);margin:0;}
-  }</style><style id="svelte-g3qng">.timeline-item.svelte-g3qng {margin-top:var(--sp-4);}.timeline-item.svelte-g3qng:first-of-type {margin-top:0;}.position.svelte-g3qng,
-  .company.svelte-g3qng,
-  .organization.svelte-g3qng,
-  .institution.svelte-g3qng,
-  .date.svelte-g3qng,
-  .area.svelte-g3qng,
-  .studyType.svelte-g3qng,
-  .title.svelte-g3qng,
-  .awarder.svelte-g3qng,
-  .publisher.svelte-g3qng,
-  .issuer.svelte-g3qng {display:inline;}.position.svelte-g3qng,
-  .studyType.svelte-g3qng,
-  .area.svelte-g3qng,
-  .title.svelte-g3qng {font-weight:700;}.company.svelte-g3qng::before,
-  .institution.svelte-g3qng::before,
-  .organization.svelte-g3qng::before,
-  .awarder.svelte-g3qng::before {content:"at ";}.company.svelte-g3qng,
-  .institution.svelte-g3qng,
-  .organization.svelte-g3qng,
-  .awarder.svelte-g3qng {color:var(--color-text-secondary);font-weight:400;}.item.svelte-g3qng {overflow:hidden;}
-
-  /* p margin handled via inline styles in paragraphSplit */.clear.svelte-g3qng::after {content:"";display:table;clear:both;}.location.svelte-g3qng {display:block;margin-top:var(--sp-1);color:var(--color-text-secondary);font-weight:500;font-size:var(--fs-meta);line-height:var(--lh-snug);}.item.svelte-g3qng .summary:where(.svelte-g3qng) {margin-top:var(--sp-2);}header.svelte-g3qng {font-size:var(--fs-title);position:relative;line-height:var(--lh-snug);margin-bottom:0;}.header-left.svelte-g3qng .position:where(.svelte-g3qng) + .company:where(.svelte-g3qng)::before,
-  .header-left.svelte-g3qng .position:where(.svelte-g3qng) + .institution:where(.svelte-g3qng)::before,
-  .header-left.svelte-g3qng .position:where(.svelte-g3qng) + .organization:where(.svelte-g3qng)::before,
-  .header-left.svelte-g3qng .position:where(.svelte-g3qng) + .awarder:where(.svelte-g3qng)::before {content:"at ";}
-
-  @media print {.timeline-item.svelte-g3qng {margin-top:var(--sp-3);}.company.svelte-g3qng a:where(.svelte-g3qng) {color:var(--color-text);}.company.svelte-g3qng::before,
-    .institution.svelte-g3qng::before,
-    .organization.svelte-g3qng::before,
-    .awarder.svelte-g3qng::before {content:"at ";}.section p {margin:0;padding:0;}.fa-location-dot:before {padding-left:0.1em;}
+  .contact-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-family: var(--font-family);
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: #555;
   }
 
-  @media screen and (max-width: 601px) {.section > section.svelte-g3qng > header:where(.svelte-g3qng) {font-size:1.071rem;}
+  .contact-row a {
+    color: #555;
+    text-decoration: none;
   }
 
-  @media screen and (min-width: 1025px) {.section > section.svelte-g3qng > header:where(.svelte-g3qng) .space-left:where(.svelte-g3qng) {opacity:1;cursor:pointer;}.section > section.svelte-g3qng:not(.main-summary) {margin-left:1.67rem;}.company.svelte-g3qng::before, .institution.svelte-g3qng::before, .organization.svelte-g3qng::before, .awarder.svelte-g3qng::before {content:"| ";}.header-left.svelte-g3qng {float:left;width:70%;word-break:normal;}.display.svelte-g3qng {display:none;}.display.svelte-g3qng:not(.none) {display:block;}
-  }</style><style id="svelte-hqrtpf">.highlights.svelte-hqrtpf {margin:var(--sp-2) 0 0 0;}.highlights.svelte-hqrtpf > li:where(.svelte-hqrtpf) {margin-top:var(--sp-1);line-height:var(--lh-base);}.highlights.svelte-hqrtpf > li:where(.svelte-hqrtpf):first-child {margin-top:0;}
-
-  @media print {.highlights.svelte-hqrtpf {margin:var(--sp-2) 0 0 0;}.highlights.svelte-hqrtpf > li:where(.svelte-hqrtpf) {margin-top:var(--sp-1);line-height:var(--lh-snug);}.highlights.svelte-hqrtpf > li:where(.svelte-hqrtpf) > p {margin-bottom:var(--sp-1);}
-  }</style><style id="svelte-fiykfy">.website.svelte-fiykfy {display:block;margin-top:var(--sp-2);font-size:var(--fs-meta);line-height:var(--lh-snug);}.website.svelte-fiykfy .fa-up-right-from-square {margin-right:0.4em;color:var(--color-text-secondary);}</style><style id="svelte-rbv6q6">.gpa.svelte-rbv6q6 {clear:both;padding-bottom:0.5em;}</style><style id="svelte-2dygc7">.languages-grid.svelte-2dygc7 {display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));column-gap:var(--sp-5);row-gap:var(--sp-3);}.language-item.svelte-2dygc7 {padding:0;border-bottom:none;}.language.svelte-2dygc7 {font-weight:700;font-size:var(--fs-card);line-height:var(--lh-snug);color:var(--color-heading);margin-bottom:var(--sp-1);}.display.svelte-2dygc7 {display:block;opacity:1 !important;}
-
-  @media screen and (max-width: 479px) {.languages-grid.svelte-2dygc7 {grid-template-columns:1fr;}
+  .contact-row .separator {
+    color: #ccc;
   }
 
-  @media screen and (min-width: 480px) and (max-width: 601px) {.languages-grid.svelte-2dygc7 {grid-template-columns:repeat(2, minmax(0, 1fr));}
-  }</style><style id="svelte-1bnc9h3">.interests-grid.svelte-1bnc9h3 {display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));column-gap:var(--sp-5);row-gap:var(--sp-3);}.interest-item.svelte-1bnc9h3 {padding:0;border-bottom:none;}.interest-item.svelte-1bnc9h3 .name:where(.svelte-1bnc9h3) {font-weight:700;font-size:var(--fs-card);line-height:var(--lh-snug);color:var(--color-heading);margin-bottom:var(--sp-1);}
-
-  @media screen and (max-width: 479px) {.interests-grid.svelte-1bnc9h3 {grid-template-columns:1fr;}
+  /* === OPTIONAL PROFILE PHOTO (opt-in, DACH/European markets — #264) ===
+     Off by default: with no candidate.photo the  slot is empty, no
+     <img> is emitted, and the layout is byte-identical to a photoless CV.
+     When opted in (candidate.photo in config/profile.yml) the photo floats into
+     the top corner and the header/summary text wraps beside it. Photos are
+     penalized by US/UK/many-market ATS, so this is never on by default. */
+  .cv-photo {
+    float: right;
+    width: 80px;
+    height: 100px;
+    object-fit: cover;
+    margin: 0 0 8px 14px;
+    border-radius: 3px;
+    border: 1px solid #e2e2e2;
   }
 
-  @media screen and (min-width: 480px) and (max-width: 601px) {.interests-grid.svelte-1bnc9h3 {grid-template-columns:repeat(2, minmax(0, 1fr));}
-  }</style><style id="svelte-1y7ope6">.reference-item.svelte-1y7ope6 {padding-left:var(--sp-3);margin-bottom:var(--sp-4);border-left:3px solid var(--color-reference-border);}.reference.svelte-1y7ope6 {font-style:italic;color:var(--color-text);line-height:var(--lh-base);margin-bottom:var(--sp-1);}.name.svelte-1y7ope6 {font-weight:700;font-size:var(--fs-meta);color:var(--color-text-secondary);}.name.svelte-1y7ope6::before {content:"— ";}</style>
-  </head>
-  <body>
-    <a class="skip-to-content" href="#resume">Skip to content</a> <main id="resume" class="resume svelte-rssu9l"><header class="header clear svelte-10f9ycp"><!--[!--><div><h1 class="name svelte-10f9ycp">Elijah Shaw-Rutschman</h1> <h2 class="label svelte-10f9ycp">Backend &amp; Full-Stack Software Engineer · API design &amp; integration, Auth (JWT/MFA/OAuth), AI platform tooling · Python, TypeScript, Nim</h2></div> <span class="location svelte-10f9ycp"><!--[!--> <!--[!--> <span>Chicago,</span> <span>IL</span> <span>(US)</span></span> <!--[!--><!----> <div class="contact svelte-121pvxs"><div class="contact-item svelte-121pvxs"><span class="fa-regular fa-envelope icon svelte-121pvxs"></span> <a class="hide-href-print" href="mailto:elijahr@gmail.com">elijahr@gmail.com</a></div> <!--[!--> <!--[!--></div><!----> <nav class="profiles svelte-10f9ycp" aria-label="Social profiles"><div class="item svelte-a76edc"><div class="username"><span class="fa-brands fa-github social svelte-a76edc" style="--brand-light: #171515; --brand-dark: #c9d1d9"></span> <span class="url"><a target="_blank" href="https://github.com/elijahr"><span class="show-only-url-print">elijahr</span></a></span></div></div><div class="item svelte-a76edc"><div class="username"><span class="fa-brands fa-github social svelte-a76edc" style="--brand-light: #171515; --brand-dark: #c9d1d9"></span> <span class="url"><a target="_blank" href="https://github.com/axiomantic"><span class="show-only-url-print">axiomantic</span></a></span></div></div><div class="item svelte-a76edc"><div class="username"><span class="fa-brands fa-linkedin social svelte-a76edc" style="--brand-light: #007bb6; --brand-dark: #007bb6"></span> <span class="url"><a target="_blank" href="https://www.linkedin.com/in/elijahru"><span class="show-only-url-print">elijahru</span></a></span></div></div></nav></header> <section class="section svelte-1lncexq"><header class="svelte-1lncexq"><h2 class="section-title svelte-1lncexq">Summary<!--[!--></h2></header> <section class="main-summary svelte-10f9ycp"><div><!----><p style="margin:0">Software engineer with nearly two decades of experience across backend, platform, API, and full-stack work, now focused on AI developer tooling and platforms. At StyleSeat, a Python and Django marketplace, designed and integrated production APIs across the Stripe billing, subscriptions, and webhook stack, built a Stripe Radar fraud-detection system, and owned reliability and release tooling. Builds open-source AI tooling: spellbook, a multi-platform harness for AI coding assistants with a shared MCP server; momus, a provider-agnostic AI code-review GitHub Action; and soong, a GPU-instance CLI for AI agent workflows. Also built a Claude-powered code-review bot adopted org-wide at StyleSeat. Works across the stack with TypeScript and React. Earned StyleSeat's highest performance rating (&quot;Exceptional&quot;) and was on the formal Staff Engineer promotion track. Chicago-based and open to remote roles across the US.</p><!----><!----></div></section><!----></section><!--[1--><section class="section svelte-1lncexq"><header class="svelte-1lncexq"><h2 class="section-title svelte-1lncexq">Skills<!--[!--></h2></header> <section class="skills-grid svelte-18p2gu6"><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">APIs &amp; Auth</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">REST API design</li><li class="svelte-1615qzb">API integration</li><li class="svelte-1615qzb">Webhooks</li><li class="svelte-1615qzb">JWT</li><li class="svelte-1615qzb">MFA</li><li class="svelte-1615qzb">OAuth integrations</li><li class="svelte-1615qzb">Access control</li><li class="svelte-1615qzb">OIDC</li><li class="svelte-1615qzb">SSO</li><li class="svelte-1615qzb">RBAC</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">AI &amp; LLM Tooling</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">AI-assisted engineering</li><li class="svelte-1615qzb">LLM application development</li><li class="svelte-1615qzb">AI agents</li><li class="svelte-1615qzb">MCP (Model Context Protocol)</li><li class="svelte-1615qzb">AI code review</li><li class="svelte-1615qzb">Claude Code</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">Languages</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Python</li><li class="svelte-1615qzb">TypeScript</li><li class="svelte-1615qzb">Nim</li><li class="svelte-1615qzb">Cython</li><li class="svelte-1615qzb">C/C++</li><li class="svelte-1615qzb">Rust</li><li class="svelte-1615qzb">SQL</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">Backend &amp; Web</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Django</li><li class="svelte-1615qzb">Celery</li><li class="svelte-1615qzb">REST APIs</li><li class="svelte-1615qzb">React</li><li class="svelte-1615qzb">FastAPI</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">Data &amp; Infrastructure</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">MySQL</li><li class="svelte-1615qzb">Redis</li><li class="svelte-1615qzb">AWS</li><li class="svelte-1615qzb">Terraform</li><li class="svelte-1615qzb">Docker</li><li class="svelte-1615qzb">CircleCI</li><li class="svelte-1615qzb">GitHub Actions</li><li class="svelte-1615qzb">PostgreSQL</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">Payments</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Stripe billing</li><li class="svelte-1615qzb">Stripe subscriptions</li><li class="svelte-1615qzb">Stripe Radar</li><li class="svelte-1615qzb">Webhooks</li><li class="svelte-1615qzb">Fraud detection</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">Systems &amp; Low-Level</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Lock-free concurrency</li><li class="svelte-1615qzb">Memory reclamation</li><li class="svelte-1615qzb">Realtime audio / DSP</li><li class="svelte-1615qzb">C / Cython interop</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">GPU &amp; Compute</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">GPU compute (Vulkan/SPIR-V)</li><li class="svelte-1615qzb">Compute shaders (GLSL)</li><li class="svelte-1615qzb">GPU memory management</li><li class="svelte-1615qzb">CUDA/Metal interop</li></ul><!----></div><div class="skill-item svelte-18p2gu6"><h3 class="name svelte-18p2gu6">Practices</h3> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Release engineering</li><li class="svelte-1615qzb">Incident response</li><li class="svelte-1615qzb">TDD</li><li class="svelte-1615qzb">Mentoring</li></ul><!----></div></section><!----></section><!--[2--><section class="section svelte-1lncexq"><header class="svelte-1lncexq"><h2 class="section-title svelte-1lncexq">Work Experience<span class="item-count svelte-1lncexq">(5)</span></h2></header> <section id="work"><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><div class="date"><span class="startDate">Feb 2014</span> <span class="endDate">- Jun 2026</span></div> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">Senior Software Engineer II</div> <div class="company svelte-g3qng"><!--[!-->StyleSeat</div></div></header> <!--[!--> <!--[!--><!----> <!--[!--> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">Twelve years wearing many hats on a Python/Django marketplace: full-stack product, native mobile, search, payments, reliability, and most recently DevOps and platform engineering. Grew into a senior engineer the company relied on for its hardest, most cross-cutting problems.</p><!----><!----></div> <ul class="highlights svelte-hqrtpf"><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Payments &amp; API integration</strong>: Longtime key payments-platform engineer and the team's payments domain expert; major contributor to the Stripe billing and subscriptions build-out (promotion codes, plan and product backfills, coupon-stacking prevention, Stripe Portal, Pro Earnings tab), designing and integrating third-party APIs and webhook flows.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Authentication &amp; API integrations</strong>: Built multi-channel MFA code delivery (SMS and email via Braze) and JWT authentication for the native-app Stripe billing-portal flow; worked across many API and auth integrations, including internal APIs with JWT, Braze, and Stripe webhooks.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>AI code review</strong>: Built &quot;StyleSeatBot,&quot; an org-wide automated code-review bot powered by Claude. It became a required reviewer on every pull request, signing off alongside a human approver, with adoption up to the CTO.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Reliability &amp; failover</strong>: Owned a custom fault-tolerant Redis client library for graceful degradation when Redis was down, and designed a Celery enqueue-failover path that captured broker-outage failures as durable dead-letter records, plus an S3-backed idempotent recovery toolkit that replayed 351 tasks lost during a broker outage.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Rate limiting</strong>: Built StyleSeat's Redis-backed API rate limiter (per-IP and per-user, sliding window, kill-switch) with a DDoS-resistant local-memory cache layer to cut Redis load; applied across auth, payment, and registration endpoints.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Fraud detection</strong>: Architected and built an automated fraud-detection system on Stripe Radar.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Platform migrations</strong>: Led the pdm-to-uv migration; contributed to org-wide Python 2-to-3 (~900K LOC), Segment-to-Braze, and MySQL 5.7-to-8 migrations.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>AI enablement</strong>: Helped drive the company's move to AI-assisted engineering as a member of the AI-adoption tiger team, running internal talks and workshops on Claude Code and LLM fundamentals.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Release engineering</strong>: Owned release tooling: a custom CircleCI orb, deploy-gate and hotfix/cherry-pick workflows, and build-failure alerting; contributed to CI/CD and Terraform/ECS.</p><!----><!----></li><li class="svelte-hqrtpf"><!----><p style="margin:0"><strong>Scale &amp; mentorship</strong>: Among the highest PR-review and code-authoring volume on the team; delivered work across product, platform, payments, and infrastructure codebases, and mentored engineers.</p><!----><!----></li></ul><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><div class="date"><span class="startDate">Aug 2012</span> <span class="endDate">- Feb 2014</span></div> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">Software Engineer</div> <div class="company svelte-g3qng"><!--[!-->Switchcam</div></div></header> <span class="location svelte-g3qng"><span class="fa-solid fa-location-dot"></span> San Francisco, CA / Chicago, IL</span> <!--[!--><!----> <!--[!--> <div class="item svelte-g3qng"><!--[!--> <ul class="highlights svelte-hqrtpf"><li class="svelte-hqrtpf"><!----><p style="margin:0">Full-stack product engineering at a social-video startup, building Python/Django backends and JavaScript frontends across data models, APIs, and UI.</p><!----><!----></li></ul><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><div class="date"><span class="startDate">Feb 2011</span> <span class="endDate">- Aug 2012</span></div> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">Lead Django Developer</div> <div class="company svelte-g3qng"><!--[!-->Fulton Works</div></div></header> <span class="location svelte-g3qng"><span class="fa-solid fa-location-dot"></span> Chicago, IL</span> <!--[!--><!----> <!--[!--> <div class="item svelte-g3qng"><!--[!--> <ul class="highlights svelte-hqrtpf"><li class="svelte-hqrtpf"><!----><p style="margin:0">Led Django development of client web applications at a development studio, owning architecture and full-stack delivery across multiple engagements.</p><!----><!----></li></ul><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><div class="date"><span class="startDate">May 2009</span> <span class="endDate">- Feb 2011</span></div> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">Software Engineer</div> <div class="company svelte-g3qng"><!--[!-->Hagerty Consulting</div></div></header> <span class="location svelte-g3qng"><span class="fa-solid fa-location-dot"></span> Evanston, IL</span> <!--[!--><!----> <!--[!--> <div class="item svelte-g3qng"><!--[!--> <ul class="highlights svelte-hqrtpf"><li class="svelte-hqrtpf"><!----><p style="margin:0">Built internal web applications and data tooling in Python/Django to support consulting engagements.</p><!----><!----></li></ul><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><div class="date"><span class="startDate">May 2006</span> <span class="endDate">- May 2009</span></div> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">Software Engineer / IT Engineer</div> <div class="company svelte-g3qng"><!--[!-->MSDSonline</div></div></header> <span class="location svelte-g3qng"><span class="fa-solid fa-location-dot"></span> Chicago, IL</span> <!--[!--><!----> <!--[!--> <div class="item svelte-g3qng"><!--[!--> <ul class="highlights svelte-hqrtpf"><li class="svelte-hqrtpf"><!----><p style="margin:0">Developed web application features for a SaaS chemical-safety and compliance platform, moving into software engineering from an IT and internal-tooling role.</p><!----><!----></li></ul><!----></div></section></section><!----></section><!--[3--><section class="section svelte-1lncexq"><header class="svelte-1lncexq"><h2 class="section-title svelte-1lncexq">Projects<span class="item-count svelte-1lncexq">(8)</span></h2></header> <section id="projects"><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">axiomantic / spellbook</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">AI tooling</li><li class="svelte-1615qzb">MCP</li><li class="svelte-1615qzb">LLM</li><li class="svelte-1615qzb">Developer experience</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/axiomantic/spellbook">https://github.com/axiomantic/spellbook</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">Multi-platform harness for AI coding assistants: skills, hooks, and a shared MCP server across Claude Code, OpenCode, Codex, Gemini CLI, and ForgeCode. Anchor of the axiomantic org.</p><!----><!----></div> <!--[!--><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">axiomantic / mcp-language-server (contributor)</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Go</li><li class="svelte-1615qzb">MCP</li><li class="svelte-1615qzb">LSP</li><li class="svelte-1615qzb">AI tooling</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/axiomantic/mcp-language-server">https://github.com/axiomantic/mcp-language-server</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">Go MCP language server. Contributed a Streamable HTTP transport alongside stdio (stateful sessions and heartbeat), an LSP-to-MCP file-operations bridge, and ~12 additional LSP tools with capability-gated registration.</p><!----><!----></div> <!--[!--><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">axiomantic / komputers</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Rust</li><li class="svelte-1615qzb">GPU</li><li class="svelte-1615qzb">Vulkan/SPIR-V</li><li class="svelte-1615qzb">Compute shaders</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/axiomantic/komputers">https://github.com/axiomantic/komputers</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">GPU compute in Rust over the Kompute Vulkan framework: a safe wrapper and C++ FFI bridge, plus hand-written GLSL compute shaders (tiled matmul, parallel reductions). Experimental.</p><!----><!----></div> <!--[!--><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">axiomantic / momus</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">AI code review</li><li class="svelte-1615qzb">LLM</li><li class="svelte-1615qzb">GitHub Actions</li><li class="svelte-1615qzb">Python</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/axiomantic/momus">https://github.com/axiomantic/momus</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">AI code-review GitHub Action that works with any OpenAI-compatible LLM provider (Anthropic, OpenAI, OpenRouter, AWS Bedrock). Runs a four-phase pipeline (plan, review, verify, post) with sandboxed read-only repository tools and per-repo YAML configuration. Python and TypeScript.</p><!----><!----></div> <!--[!--><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">axiomantic / soong</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">AI infrastructure</li><li class="svelte-1615qzb">GPU</li><li class="svelte-1615qzb">CLI</li><li class="svelte-1615qzb">Python</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/axiomantic/soong">https://github.com/axiomantic/soong</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">CLI for launching and managing Lambda Labs GPU instances for AI agent workflows: one-command launch with model selection, SSH tunneling with automatic port forwarding, and cost controls (lease limits and idle auto-shutdown). Python, MIT-licensed.</p><!----><!----></div> <!--[!--><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">python-autopxd2</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Developer tooling</li><li class="svelte-1615qzb">libclang</li><li class="svelte-1615qzb">Cython</li><li class="svelte-1615qzb">C/C++</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/elijahr/python-autopxd2">https://github.com/elijahr/python-autopxd2</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">Cython .pxd binding generator for C and C++ headers. As the primary maintainer, rewrote it onto a libclang backend that handles real-world headers. 52+ stars, on PyPI.</p><!----><!----></div> <!--[!--><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">run-on-arch-action (major contributor)</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">CI/CD</li><li class="svelte-1615qzb">QEMU</li><li class="svelte-1615qzb">Cross-architecture</li><li class="svelte-1615qzb">GitHub Actions</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/uraimo/run-on-arch-action">https://github.com/uraimo/run-on-arch-action</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">GitHub Action to run CI on non-x86 CPUs (ARM, aarch64, s390x, ppc64le, riscv64) via QEMU. Rewrote it to be more maintainable and testable, reviving community contribution. 747 stars.</p><!----><!----></div> <!--[!--><!----></div></section><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><!--[!--> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">nim-lang/Nim (compiler contributor)</div> <!--[!--></div></header> <!--[!--> <ul class="keywords svelte-1615qzb"><li class="svelte-1615qzb">Nim</li><li class="svelte-1615qzb">Compiler internals</li><li class="svelte-1615qzb">Type systems</li><li class="svelte-1615qzb">Code generation</li></ul><!----> <span class="website svelte-fiykfy"><span class="fa-solid fa-up-right-from-square"></span> <a target="_blank" href="https://github.com/nim-lang/Nim/pulls?q=is%3Apr+author%3Aelijahr+is%3Amerged">https://github.com/nim-lang/Nim/pulls?q=is%3Apr+author%3Aelijahr+is%3Amerged</a></span><!----> <div class="item svelte-g3qng"><div class="summary svelte-g3qng"><!----><p style="margin:0">Merged fixes to the Nim compiler's type system and C code generator, including cycle detection for recursive concepts, sizeof for typedesc in generic template when clauses, C codegen for lifecycle hooks on generic distinct types, and object initialization for opaque importc fields.</p><!----><!----></div> <!--[!--><!----></div></section></section><!----></section><!--[4--><!--[!--><!--[5--><section class="section svelte-1lncexq"><header class="svelte-1lncexq"><h2 class="section-title svelte-1lncexq">Education<span class="item-count svelte-1lncexq">(1)</span></h2></header> <section id="education"><section class="timeline-item svelte-g3qng"><header class="clear svelte-g3qng"><div class="date"><span class="startDate">Aug 2004</span> <span class="endDate">- May 2008</span></div> <div class="header-left svelte-g3qng"><div class="position svelte-g3qng">Bachelor of Science Computer Science, Minor in Philosophy</div> <div class="institution svelte-g3qng"><!--[!-->Northeastern Illinois University</div></div></header> <!--[!--> <!--[!--><!----> <!--[!--> <!--[!--><!----> <div class="item svelte-g3qng"><!--[!--> <!--[!--><!----></div></section></section><!----></section><!--[6--><!--[!--><!--[7--><!--[!--><!--[8--><!--[!--><!--[9--><!--[!--><!--[10--><!--[!--><!--[11--><!--[!--></main>
-  </body>
+  .cv-photo--rounded { border-radius: 8px; }
+  .cv-photo--circle { border-radius: 50%; aspect-ratio: 1; height: 80px; }
+  .cv-photo--square { border-radius: 0; aspect-ratio: 1; height: 80px; }
+
+  /* === SECTIONS === */
+  .section {
+    margin-bottom: 11px;
+  }
+
+  .section-title {
+    font-family: var(--font-family);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-color);
+    border-bottom: 1.5px solid #e2e2e2;
+    padding-bottom: 4px;
+    margin-bottom: 7px;
+    line-height: 1.2;
+  }
+
+  /* === PROFESSIONAL SUMMARY === */
+  .summary-text {
+    font-size: var(--font-size);
+    line-height: 1.55;
+    color: #2f2f2f;
+  }
+
+  .summary-text strong {
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  /* Links must never break across lines */
+  a {
+    white-space: nowrap;
+  }
+
+  /* === CORE COMPETENCIES === */
+  .competencies-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .competency-tag {
+    font-family: var(--font-family);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--accent-deep);
+    background: var(--accent-tint);
+    padding: 3px 9px;
+    border-radius: 3px;
+    border: 1px solid var(--accent-tint-border);
+  }
+
+  /* === WORK EXPERIENCE === */
+  .job {
+    margin-bottom: 14px;
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .job-company {
+    font-family: var(--font-family);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--accent-color);
+  }
+
+  .job-period {
+    font-size: 10.5px;
+    color: #777;
+    white-space: nowrap;
+  }
+
+  .job-role {
+    font-size: var(--font-size);
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  .job-location {
+    font-size: 10px;
+    color: #888;
+  }
+
+  .job ul {
+    padding-left: 18px;
+    margin-top: 6px;
+  }
+
+  .job li {
+    font-size: 10.5px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 4px;
+  }
+
+  .job li strong {
+    font-weight: 600;
+  }
+
+  /* === PROJECTS === */
+  .project {
+    margin-bottom: 7px;
+  }
+
+  .project-title {
+    font-family: var(--font-family);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--accent-color);
+  }
+
+  .role-badge {
+    font-size: 9px;
+    font-weight: 600;
+    color: #ffffff;
+    background: var(--accent-color);
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-left: 6px;
+    letter-spacing: 0.2px;
+  }
+
+  .project-badge {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--accent-color);
+    background: var(--accent-tint);
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-left: 6px;
+  }
+
+  .project-desc {
+    font-size: 10.1px;
+    color: #444;
+    margin-top: 3px;
+    line-height: 1.45;
+  }
+
+  .project-tech {
+    font-size: 9.5px;
+    color: #888;
+    margin-top: 3px;
+  }
+
+  /* === EDUCATION === */
+  .edu-item {
+    margin-bottom: 8px;
+  }
+
+  .edu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .edu-title {
+    font-weight: 600;
+    font-size: var(--font-size);
+    color: #333;
+  }
+
+  .edu-org {
+    color: var(--accent-color);
+    font-weight: 500;
+  }
+
+  .edu-year {
+    font-size: 10px;
+    color: #777;
+    white-space: nowrap;
+  }
+
+  .edu-desc {
+    font-size: 10px;
+    color: #666;
+    margin-top: 2px;
+    line-height: 1.5;
+  }
+
+  /* === CERTIFICATIONS === */
+  .cert-table {
+    display: table;
+    width: 100%;
+  }
+
+  .cert-item {
+    display: table-row;
+  }
+
+  .cert-item > * {
+    display: table-cell;
+    vertical-align: baseline;
+    padding-bottom: 6px;
+  }
+
+  .cert-title {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .cert-org {
+    color: var(--accent-color);
+    white-space: nowrap;
+  }
+
+  .cert-year {
+    font-size: 10px;
+    color: #777;
+    white-space: nowrap;
+    text-align: right;
+    width: 44px;
+  }
+
+  /* === AWARDS === */
+  /* Same table model as certifications (title / issuer / year on one baseline),
+     under its own class names so a template pack can restyle awards without
+     dragging certifications along. */
+  .award-table {
+    display: table;
+    width: 100%;
+  }
+
+  .award-item {
+    display: table-row;
+  }
+
+  .award-item > * {
+    display: table-cell;
+    vertical-align: baseline;
+    padding-bottom: 6px;
+  }
+
+  .award-title {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .award-org {
+    color: var(--accent-color);
+    white-space: nowrap;
+  }
+
+  .award-year {
+    font-size: 10px;
+    color: #777;
+    white-space: nowrap;
+    text-align: right;
+    width: 44px;
+  }
+
+  /* === SKILLS === */
+  .skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+
+  .skill-item {
+    font-size: 10.1px;
+    color: #444;
+  }
+
+  .skill-category {
+    font-weight: 600;
+    color: #333;
+    font-size: 10.5px;
+  }
+
+  /* === PRINT === */
+  @media print {
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Keep a small right gutter for the print box. Right-aligned content
+       (job periods, education years) right-aligns to the content-box edge,
+       and the rightmost glyph's side bearing can spill ~1px past it and get
+       clipped by Chromium's print clip. A plain `.page` padding is reset to 0
+       here for print, which is why padding set outside @media print has no
+       effect; restoring a right gutter inside the print rule fixes it without
+       re-centering the page or hard-coding a per-format max-width. See #1341. */
+    .page {
+      padding: 0 0.18in 0 0;
+    }
+  }
+
+  /* === PAGE BREAK CONTROL === */
+  /* Only avoid breaking small atomic units (a cert row, an education line, the
+     header, a single competency or skill).  Sections and multi-bullet roles are
+     allowed to flow across a page boundary so content packs tight instead of
+     jumping wholesale and leaving large bottom gaps. */
+  .header,
+  .edu-item,
+  .cert-item,
+  .competency-tag,
+  .skill-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep a heading attached to the content that follows it, so headings are not
+     orphaned at the bottom of a page. */
+  .section-title,
+  .job-company,
+  .job-role,
+  .job-location,
+  .project-title {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* === RTL (Arabic) Support === */
+  html[lang="ar"] body {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  }
+
+  html[lang="ar"] .header h1,
+  html[lang="ar"] .section-title,
+  html[lang="ar"] .job-company,
+  html[lang="ar"] .project-title,
+  html[lang="ar"] .competency-tag,
+  html[lang="ar"] .skill-category {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  }
+
+  html[lang="ar"] .header-gradient {
+    background: var(--accent-color);
+  }
+
+  html[lang="ar"] .job ul {
+    padding-right: 18px;
+    padding-left: 0;
+  }
+
+  html[lang="ar"] .project-badge {
+    margin-right: 6px;
+    margin-left: 0;
+  }
+
+  html[lang="ar"] .cert-year {
+    text-align: left;
+  }
+
+  html[lang="ar"] .cert-table {
+    direction: rtl;
+  }
+
+  html[lang="ar"] .cv-photo {
+    float: left;
+    margin: 0 14px 8px 0;
+  }
+
+  /* === CJK (Japanese) font fallback === */
+  /* The bundled webfonts are Latin-only (see #951). Without a CJK fallback,
+     Japanese text renders as tofu (□) in headless Chromium on any system
+     without a CJK system font (Linux/CI, minimal containers). The Latin brand
+     fonts are kept first so ASCII still uses Space Grotesk / DM Sans, then the
+     browser's per-glyph fallback picks the first installed CJK face for kana
+     and kanji. Mirrors the lang="ar" precedent above. */
+  html[lang="ja"] body {
+    font-family: 'Liberation Sans', 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
+      'Yu Gothic', 'YuGothic', 'Noto Sans CJK JP', 'Noto Sans JP',
+      Meiryo, 'MS PGothic', sans-serif;
+  }
+
+  html[lang="ja"] .header h1,
+  html[lang="ja"] .section-title,
+  html[lang="ja"] .job-company,
+  html[lang="ja"] .project-title,
+  html[lang="ja"] .competency-tag,
+  html[lang="ja"] .skill-category {
+    font-family: 'Liberation Sans', 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
+      'Yu Gothic', 'YuGothic', 'Noto Sans CJK JP', 'Noto Sans JP',
+      Meiryo, 'MS PGothic', sans-serif;
+  }
+
+  /* === Simplified Chinese typography ===
+     Keep Latin-capable system fonts first for stable ATS extraction, then use
+     platform-native and open-source Simplified Chinese faces for Han glyphs.
+     Explicit line-breaking prevents mixed Chinese/English tokens and Chinese
+     punctuation from producing clipped or awkward PDF lines. */
+  html[lang="zh-CN"] body,
+  html[lang="zh"] body {
+    font-family: 'Liberation Sans', 'Helvetica Neue', Arial, 'PingFang SC',
+      'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC',
+      'Noto Sans SC', 'Source Han Sans SC', sans-serif;
+    line-break: strict;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
+  html[lang="zh-CN"] .header h1,
+  html[lang="zh-CN"] .section-title,
+  html[lang="zh-CN"] .job-company,
+  html[lang="zh-CN"] .project-title,
+  html[lang="zh-CN"] .contact-row,
+  html[lang="zh-CN"] .competency-tag,
+  html[lang="zh-CN"] .skill-category,
+  html[lang="zh"] .header h1,
+  html[lang="zh"] .section-title,
+  html[lang="zh"] .job-company,
+  html[lang="zh"] .project-title,
+  html[lang="zh"] .contact-row,
+  html[lang="zh"] .competency-tag,
+  html[lang="zh"] .skill-category {
+    font-family: 'Liberation Sans', 'Helvetica Neue', Arial, 'PingFang SC',
+      'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC',
+      'Noto Sans SC', 'Source Han Sans SC', sans-serif;
+  }
+
+  html[lang="zh-CN"] .summary-text,
+  html[lang="zh"] .summary-text,
+  html[lang="zh-CN"] .job li,
+  html[lang="zh"] .job li {
+    line-height: 1.55;
+  }
+
+  html[lang="zh-CN"] .section-title,
+  html[lang="zh"] .section-title {
+    letter-spacing: 0.03em;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Elijah Shaw-Rutschman</h1>
+    <div class="headline">Senior / Staff Software Engineer &middot; Backend, Platform &amp; Reliability &middot; Open-Source Systems, Compilers &amp; Embedded</div>
+    <div class="header-gradient"></div>
+    <div class="contact-row">
+      <a href="tel:(773)800-1401">(773) 800-1401</a>
+      <span class="separator">&nbsp;|&nbsp;</span>
+      <a href="mailto:elijahr@gmail.com">elijahr@gmail.com</a>
+      <span class="separator">&nbsp;|&nbsp;</span>
+      <a href="https://www.linkedin.com/in/elijahru">linkedin.com/in/elijahru</a>
+      <span class="separator">&nbsp;|&nbsp;</span>
+      <a href="https://github.com/elijahr">github.com/elijahr</a>
+      <span class="separator">&nbsp;|&nbsp;</span>
+      <a href="https://elijahr.github.io/cv">elijahr.github.io/cv</a>
+      <span class="separator">&nbsp;|&nbsp;</span>
+      <span>Chicago, IL, US</span>
+    </div>
+  </div>
+
+  <!-- PROFESSIONAL SUMMARY -->
+  <div class="section">
+    <div class="section-title">Professional Summary</div>
+    <div class="summary-text">Software engineer with twenty years building production systems and apps in Python, JavaScript, Nim, C, and whatever else the job needed. Twelve years at StyleSeat, a B2C Python and Django marketplace serving ~2M consumers and 80K beauty professionals, owning the reliability, payments, and platform work the company depended on. Drove org-wide migrations under minimal guidance, including <strong>Python 2-to-3 across ~1M lines in three months with no downtime</strong>, done years before LLM coding assistants existed. Author, maintainer, and contributor to dozens of open-source libraries and tools other developers depend on, including the Nim compiler, Black, and Cython. My concurrency library lockfreequeues is part of the Nim compiler&#39;s regression suite. Titles along the way include Lead Django Developer and Senior Software Engineer II. Was on StyleSeat&#39;s formal Staff Engineer promotion track, holding their highest performance rating (&quot;Exceptional&quot;). Long tenure meant learning from the full multi-year lifecycle of product features and engineering decisions, which most engineers move on before seeing. Open to remote roles across the US.</div>
+  </div>
+
+  <!-- CORE COMPETENCIES -->
+  <div class="section">
+    <div class="section-title">Core Competencies</div>
+    <div class="competencies-grid">
+      <span class="competency-tag">Distributed Systems &amp; Reliability</span>
+      <span class="competency-tag">Python, Django &amp; Celery</span>
+      <span class="competency-tag">Platform &amp; Release Engineering</span>
+      <span class="competency-tag">AWS, Kubernetes, Terraform &amp; Docker</span>
+      <span class="competency-tag">Payments &amp; Stripe Integration</span>
+      <span class="competency-tag">Systems &amp; Compiler Programming</span>
+      <span class="competency-tag">Open-Source Maintenance</span>
+      <span class="competency-tag">AI-Assisted Engineering</span>
+      <span class="competency-tag">Mentoring &amp; Technical Leadership</span>
+      <span class="competency-tag">CI/CD, Testing &amp; Quality</span>
+      <span class="competency-tag">TypeScript &amp; React.js</span>
+    </div>
+  </div>
+
+  <!-- WORK EXPERIENCE -->
+  <div class="section">
+    <div class="section-title">Work Experience</div>
+    <div class="job">
+  <div class="job-header">
+    <span class="job-company">StyleSeat</span>
+    <span class="job-period">Mar 2014 - Jun 2026</span>
+  </div>
+  <div class="job-role">Senior Software Engineer II</div>
+  <div class="job-location">Remote</div>
+  <ul>
+    <li>Reliability and failover: Architected the task-automation reliability layer, a Celery enqueue-failover path that captured broker-outage failures as durable dead-letter records, plus an S3-backed idempotent <strong>recovery toolkit that replayed 351 tasks</strong> lost during an outage. Owned a fault-tolerant Redis client library for graceful degradation when Redis was down.</li>
+    <li>Rate limiting and DDoS defense: Built a Redis-backed API rate limiter (per-IP and per-user, sliding window, kill-switch) with a local-memory cache layer that <strong>cut Redis calls by roughly 80-90%</strong>, applied across auth, payment, and registration endpoints.</li>
+    <li>Platform migrations at scale: Drove org-wide migrations under minimal guidance, including Python 2-to-3 across ~1M lines in three months with no downtime, plus pdm-to-uv, MySQL 5.7-to-8, and Segment-to-Braze.</li>
+    <li>Platform, infrastructure and release engineering: Built and operated AWS infrastructure with Terraform, ECS, and Docker, and owned release tooling end to end - a custom CircleCI orb, deploy-gate and hotfix/cherry-pick workflows, and build-failure alerting - <strong>cutting build times by roughly 40-50%</strong>. Ran the systems delivered rather than handing them to a separate ops team.</li>
+    <li>Payments: Owned payments as the team&#39;s domain expert across twelve years; major contributor to the Stripe billing and subscriptions build-out (promotion codes, plan backfills, coupon-stacking prevention, Stripe Portal, Pro Earnings), plus retry hardening on third-party Stripe calls and an automated fraud-detection system on Stripe Radar.</li>
+    <li>AI code review: Designed StyleSeatBot, an org-wide automated code-review bot powered by Claude that became a required reviewer on every pull request, with adoption up to the CTO. Drove AI-assisted engineering adoption as a member of the AI-adoption tiger team.</li>
+    <li>Senior ownership and mentorship: <strong>The highest-volume code reviewer company-wide, year after year</strong>, in a 75+ engineer organization; <strong>mentored 10+ engineers</strong> across product, platform, payments, and infrastructure. Earned the <strong>highest performance rating (&quot;Exceptional&quot;)</strong> and was on the formal Staff Engineer promotion track. Role eliminated in a company-wide layoff (~1/3 of staff), June 2026.</li>
+  </ul>
+</div>
+  <div class="job">
+  <div class="job-header">
+    <span class="job-company">Switchcam</span>
+    <span class="job-period">Sep 2012 - Mar 2014</span>
+  </div>
+  <div class="job-role">Software Engineer</div>
+  <div class="job-location">San Francisco, CA / Chicago, IL</div>
+  <ul>
+    <li>Built audio-fingerprinting sync for crowd-sourced concert video, matching clips by their audio signature to align independently recorded footage on a shared timeline.</li>
+    <li>Built the Python/Django backend at a social-video startup (data models, REST APIs) and the JavaScript front end for the product.</li>
+  </ul>
+</div>
+  <div class="job">
+  <div class="job-header">
+    <span class="job-company">Fulton Works</span>
+    <span class="job-period">Mar 2011 - Sep 2012</span>
+  </div>
+  <div class="job-role">Lead Django Developer</div>
+  <div class="job-location">Chicago, IL</div>
+  <ul>
+    <li>Led Python/Django development of client web applications at a development studio, including ZeroMQ message-passing between services, owning architecture and full-stack delivery across multiple client engagements.</li>
+  </ul>
+</div>
+  <div class="job">
+  <div class="job-header">
+    <span class="job-company">Hagerty Consulting</span>
+    <span class="job-period">Jun 2009 - Mar 2011</span>
+  </div>
+  <div class="job-role">Software Engineer</div>
+  <div class="job-location">Evanston, IL</div>
+  <ul>
+    <li>Built internal web applications and Python/Django data tooling supporting client engagements at an emergency-management and disaster-recovery consulting firm.</li>
+  </ul>
+</div>
+  <div class="job">
+  <div class="job-header">
+    <span class="job-company">MSDSonline</span>
+    <span class="job-period">Jun 2006 - Jun 2009</span>
+  </div>
+  <div class="job-role">Software Engineer / IT Engineer</div>
+  <div class="job-location">Chicago, IL</div>
+  <ul>
+    <li>Developed web application features for a SaaS chemical-safety and regulatory-compliance platform, moving into software engineering from an IT and internal-tooling role.</li>
+  </ul>
+</div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="section">
+    <div class="section-title">Projects</div>
+    <div class="project">
+  <div class="project-title">Upstream contributions<span class="role-badge">Contributor</span><span class="project-badge">Merged into 40+ repos</span></div>
+  <div class="project-desc">Merged fixes into the Nim compiler (18.2k stars), covering its type system and C code generator, including cycle detection for recursive concepts and codegen for lifecycle hooks. Also merged upstream into Black (41.8k stars), asdf (25.5k), Homebrew Cask (22.2k), Cython (10.8k), typeshed (5.1k), nanomsg/NNG (4.7k), crosstool-ng (2.5k), Dropbear SSH (2.4k), RtAudio (1.8k), Zyre (948), and dozens more.</div>
+  <div class="project-tech">Python, Nim, C, C++, Compiler internals, Cross-compilation, Realtime audio, Messaging, Packaging</div>
+</div>
+  <div class="project">
+  <div class="project-title">run-on-arch-action<span class="role-badge">Top Contributor</span><span class="project-badge">749+ GitHub stars</span></div>
+  <div class="project-desc">GitHub Action running CI on non-x86 CPUs (ARM, aarch64, s390x, ppc64le, riscv64) via Docker and QEMU. Refactored it for maintainability and to lower the barrier to outside contributions; now the largest contributor to the project, ahead of the original author.</div>
+  <div class="project-tech">CI/CD, QEMU, Docker, Cross-architecture, GitHub Actions</div>
+</div>
+  <div class="project">
+  <div class="project-title">pynng<span class="role-badge">Maintainer</span><span class="project-badge">328+ GitHub stars</span></div>
+  <div class="project-desc">Maintainer and major contributor to the Python bindings for nanomsg next-generation (NNG), the messaging library succeeding nanomsg and ZeroMQ. Covers scalability protocols for messaging between processes on one machine or across a network.</div>
+  <div class="project-tech">Python, C, NNG, nanomsg, CFFI, Messaging protocols, Distributed systems</div>
+</div>
+  <div class="project">
+  <div class="project-title">python-autopxd2<span class="role-badge">Owner</span><span class="project-badge">52+ GitHub stars</span></div>
+  <div class="project-desc">Primary maintainer of the most widely used fork of autopxd, which generates Cython .pxd declarations automatically from C headers. Recently refactored onto headerkit, a clang-based header-parsing library written to replace the original hand-rolled parser with a real libclang front end and pluggable backends.</div>
+  <div class="project-tech">Python, Cython, C, libclang, Parsing</div>
+</div>
+  <div class="project">
+  <div class="project-title">lockfreequeues<span class="role-badge">Author</span><span class="project-badge">50+ GitHub stars</span></div>
+  <div class="project-desc">Lock-free queues for Nim (SPSC, SPMC, MPSC, MPMC), and one of the community libraries in the Nim compiler&#39;s regression suite.</div>
+  <div class="project-tech">Nim, Lock-free concurrency, Systems</div>
+</div>
+  <div class="project">
+  <div class="project-title">asdf-nim<span class="role-badge">Author</span><span class="project-badge">27+ GitHub stars</span></div>
+  <div class="project-desc">Nim plugin for the asdf version manager, providing prebuilt-binary and source installs across platforms.</div>
+  <div class="project-tech">Nim, Shell, Packaging, Cross-platform, Developer tooling</div>
+</div>
+  <div class="project">
+  <div class="project-title">ringbuf<span class="role-badge">Author</span><span class="project-badge">22+ GitHub stars</span></div>
+  <div class="project-desc">Lock-free single-producer single-consumer ring buffer for Python and Cython, wrapping Boost.Lockfree so audio callbacks can hand data to Python without the GIL or allocation in the realtime path.</div>
+  <div class="project-tech">Python, Cython, C++, Lock-free concurrency, Realtime audio</div>
+</div>
+  <div class="project">
+  <div class="project-title">build-farm<span class="role-badge">Author</span><span class="project-badge">17+ GitHub stars</span></div>
+  <div class="project-desc">Cross-compilation toolchain distributing builds across Docker containers with distcc, targeting non-x86 architectures without native hardware.</div>
+  <div class="project-tech">Docker, distcc, Cross-compilation, Toolchains, CI/CD</div>
+</div>
+  <div class="project">
+  <div class="project-title">axiomantic / spellbook<span class="role-badge">Author</span><span class="project-badge">AI Tooling</span></div>
+  <div class="project-desc">Multi-platform harness for AI coding assistants: skills, hooks, and a shared MCP server across Claude Code, OpenCode, Codex, and Gemini CLI. Most-starred project in the axiomantic org.</div>
+  <div class="project-tech">MCP, LLM, Developer experience, Python</div>
+</div>
+  <div class="project">
+  <div class="project-title">axiomantic / momus<span class="role-badge">Author</span><span class="project-badge">AI Tooling</span></div>
+  <div class="project-desc">AI code review packaged as a GitHub Action, running automated review on pull requests.</div>
+  <div class="project-tech">LLM, AI code review, GitHub Actions, CI/CD, Python</div>
+</div>
+  <div class="project">
+  <div class="project-title">tripwire (Nim) / pytest-tripwire (Python)<span class="role-badge">Author</span></div>
+  <div class="project-desc">Test-mocking libraries that make verification mandatory: every external call is recorded and must be explicitly authorized and asserted, with unasserted interactions failing at teardown. 27 built-in integrations across HTTP, databases, caches, subprocesses and cloud services. Same design, two languages.</div>
+  <div class="project-tech">Nim, Python, pytest, Test mocking, Static analysis, Developer tooling</div>
+</div>
+  <div class="project">
+  <div class="project-title">axiomantic / headerkit<span class="role-badge">Author</span></div>
+  <div class="project-desc">Clang-based C/C++ header parsing toolkit in Python with pluggable backends for generating bindings and interop code. Extracted as a reusable library and now the parsing layer behind python-autopxd2.</div>
+  <div class="project-tech">Python, C/C++, libclang, Parsing, FFI, Developer tooling</div>
+</div>
+  <div class="project">
+  <div class="project-title">nim-debra<span class="role-badge">Author</span></div>
+  <div class="project-desc">Distributed epoch-based safe memory reclamation (DEBRA+) for lock-free data structures in Nim, reclaiming memory without blocking or pausing concurrent operations.</div>
+  <div class="project-tech">Nim, Lock-free concurrency, Memory management, Systems</div>
+</div>
+  <div class="project">
+  <div class="project-title">axiomantic / komputers<span class="role-badge">Author</span></div>
+  <div class="project-desc">Rust bindings for the Kompute GPU compute framework.</div>
+  <div class="project-tech">Rust, GPU compute, Vulkan, FFI</div>
+</div>
+  <div class="project">
+  <div class="project-title">nim-typestates<span class="role-badge">Author</span></div>
+  <div class="project-desc">Compile-time state machine validation for Nim: invalid state transitions fail to compile rather than surfacing at runtime.</div>
+  <div class="project-tech">Nim, Type systems, Compile-time programming, Static verification</div>
+</div>
+  <div class="project">
+  <div class="project-title">sonoscope<span class="role-badge">Author</span><span class="project-badge">Audio Tooling</span></div>
+  <div class="project-desc">Audio-QA harness for audio plugins, driving parameters to rendered wav and on to analysis JSON for automated regression testing of DSP output.</div>
+  <div class="project-tech">DSP, Audio analysis, Test automation, Python</div>
+</div>
+  <div class="project">
+  <div class="project-title">PebbleOS port to the Bangle.js 2<span class="role-badge">Contributor</span><span class="project-badge">Embedded</span></div>
+  <div class="project-desc">Porting PebbleOS to the Bangle.js 2 (nRF52840): touch input, bootloader, color display, and BLE, plus a Renode emulation for board bring-up without hardware.</div>
+  <div class="project-tech">Embedded C, Firmware, RTOS, nRF52840, BLE</div>
+</div>
+  <div class="project">
+  <div class="project-title">Nord Modular G2 emulation<span class="role-badge">Author &amp; Contributor</span><span class="project-badge">Emulation / DSP</span></div>
+  <div class="project-desc">Extending the gearmulator DSP56k emulator to emulate the Clavia Nord Modular G2 synthesizer. Spans an MCF5307 ColdFire core and ISP1181 device model in Nim, an MC68331 emulator in C++, firmware extraction and patch analysis tooling, and the dsp56300 emulator core.</div>
+  <div class="project-tech">C++, Nim, DSP56k, ColdFire, MC68331, Emulation, Reverse engineering, Firmware, Realtime audio</div>
+</div>
+  <div class="project">
+  <div class="project-title"></div>
+  <div class="project-desc">Plus dozens of other authored projects spanning compiler and interop tooling, audio and DSP libraries, developer tooling, emulators, GPU compute, and cross-platform build infrastructure.</div>
+  
+</div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="section">
+    <div class="section-title">Education</div>
+    <div class="edu-item">
+  <div class="edu-header">
+    <div class="edu-title">Bachelor of Science, Computer Science (Minor in Philosophy) <span class="edu-org">Northeastern Illinois University</span></div>
+    <div class="edu-year">2008</div>
+  </div>
+  
+</div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="section">
+    <div class="section-title">Skills</div>
+    <div class="skill-item"><span class="skill-category">Languages: </span>Python, Go (Golang), Rust, Nim, C, C++, Objective-C, Cython, TypeScript, JavaScript, Lisp, SQL, Bash</div>
+<div class="skill-item"><span class="skill-category">Backend &amp; Web: </span>Django, Celery, FastAPI, REST API design, gunicorn, uvicorn, WSGI, ASGI, React (React.js), AngularJS (Angular.js), Node.js</div>
+<div class="skill-item"><span class="skill-category">Distributed Systems &amp; Reliability: </span>Distributed systems, High availability, Fault tolerance, Idempotency, Dead-letter queues, Failover, Rate limiting, Incident response, On-call rotation, ZeroMQ, nanomsg / NNG</div>
+<div class="skill-item"><span class="skill-category">Cloud, DevOps &amp; Data: </span>AWS, ECS, Kubernetes, Terraform, Infrastructure as code, DevOps, Docker, Jenkins, CircleCI, GitHub Actions, CI/CD, Release engineering, venv, virtualenv, pip, uv, Linux, MySQL, PostgreSQL, Elasticsearch, Redis</div>
+<div class="skill-item"><span class="skill-category">Testing &amp; Quality: </span>pytest, pylint, ruff, Test coverage, Static analysis, Code review</div>
+<div class="skill-item"><span class="skill-category">APIs, Auth &amp; Payments: </span>OAuth, OIDC, SSO, JWT, MFA, RBAC, Webhooks, Stripe billing, Stripe subscriptions, Stripe Radar, Fraud detection</div>
+<div class="skill-item"><span class="skill-category">Systems &amp; Compilers: </span>Lock-free concurrency, Memory management, Memory reclamation, Realtime audio / DSP, Audio fingerprinting, Compiler internals, Code generation, LLVM, libclang, Make, CMake, Build systems, Cross-compilation, Embedded C, Bare-metal, Firmware, RTOS</div>
+<div class="skill-item"><span class="skill-category">AI &amp; LLM Tooling: </span>AI-assisted engineering, Prompt engineering, LLM application development, AI agents, MCP (Model Context Protocol), FastMCP, Claude Code, AI code review</div>
+  </div>
+
+</div>
+</body>
 </html>
